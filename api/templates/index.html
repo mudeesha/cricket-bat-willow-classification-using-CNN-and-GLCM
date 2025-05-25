@@ -1,0 +1,111 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Image Prediction</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            text-align: center;
+            background-color: #f4f4f9;
+            margin: 0;
+            padding: 0;
+        }
+        h1 {
+            color: #8B4513;
+            margin-top: 20px;
+        }
+        #container {
+            margin-top: 50px;
+            display: inline-block;
+            padding: 20px;
+            border: 2px solid #ddd;
+            border-radius: 10px;
+            background-color: #fff;
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+        }
+        input[type="file"] {
+            margin: 10px auto;
+            display: block;
+        }
+        button {
+            background-color: #4CAF50;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            cursor: pointer;
+            border-radius: 5px;
+        }
+        button:hover {
+            background-color: #45a049;
+        }
+        #result-container {
+            margin-top: 20px;
+            text-align: center;
+        }
+        img {
+            max-width: 300px;
+            max-height: 300px;
+            margin-top: 10px;
+            border: 1px solid #ccc;
+            border-radius: 10px;
+        }
+        #label {
+            font-size: 20px;
+            font-weight: bold;
+            color: #333;
+            margin-top: 10px;
+        }
+    </style>
+</head>
+<body>
+    <h1>Cricket bat Willow Prediction Tool</h1>
+    <div id="container">
+        <input type="file" id="imageUpload" name="image" accept="image/*" required>
+        <button onclick="submitImage()">Submit</button>
+        <div id="result-container">
+            <img id="result-image" src="" alt="" style="display:none;">
+            <p id="label"></p>
+        </div>
+    </div>
+
+    <script>
+        function submitImage() {
+            const imageInput = document.getElementById('imageUpload');
+            const formData = new FormData();
+            formData.append('image', imageInput.files[0]);
+
+            // Send POST request to Flask API
+            fetch('/predict', {
+                method: 'POST',
+                body: formData
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.error) {
+                    document.getElementById('label').innerText = data.error;
+                    document.getElementById('result-image').style.display = "none";
+                } else {
+                    // Show the uploaded image
+                    const file = imageInput.files[0];
+                    const reader = new FileReader();
+                    reader.onload = function(event) {
+                        document.getElementById('result-image').src = event.target.result;
+                        document.getElementById('result-image').style.display = "block";
+                    };
+                    reader.readAsDataURL(file);
+
+                    // Show the predicted label
+                    document.getElementById('label').innerText = 'Predicted Class: ' + data.predicted_class;
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                document.getElementById('label').innerText = 'Error occurred while processing the image.';
+                document.getElementById('result-image').style.display = "none";
+            });
+        }
+    </script>
+</body>
+</html>
